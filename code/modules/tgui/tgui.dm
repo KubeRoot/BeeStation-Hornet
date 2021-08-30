@@ -301,7 +301,8 @@
 	// Pass act type messages to ui_act
 	if(type && copytext(type, 1, 5) == "act/")
 		process_status()
-		if(src_object.ui_act(copytext(type, 5), payload, src, state))
+		var/act_return = src_object.ui_act(copytext(type, 5), payload, src, state)
+		if(act_return && act_return != TGUI_ACT_REJECT)
 			SStgui.update_uis(src_object)
 		return FALSE
 	switch(type)

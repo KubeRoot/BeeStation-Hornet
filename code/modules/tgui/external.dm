@@ -98,7 +98,7 @@
 /datum/proc/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	// If UI is not interactive or usr calling Topic is not the UI user, bail.
 	if(!ui || ui.status != UI_INTERACTIVE)
-		return 1
+		return TGUI_ACT_REJECT
 
 /**
  * public

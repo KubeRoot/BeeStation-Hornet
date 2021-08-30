@@ -59,3 +59,8 @@
 #define TGUI_TELEM_CKEY_WARNING "TELEM_CKEY_TEXT"
 #define TGUI_TELEM_IP_WARNING "TELEM_IP_TEXT"
 #define TGUI_TELEM_CID_WARNING "TELEM_CID_TEXT"
+
+/// ui_act return values
+#define TGUI_ACT_NOUPDATE null //UI does not need an update
+#define TGUI_ACT_UPDATE   1    //UI needs an update
+#define TGUI_ACT_REJECT   -1   //UI should not update or accept any acts - truthy for backwards compatibility
