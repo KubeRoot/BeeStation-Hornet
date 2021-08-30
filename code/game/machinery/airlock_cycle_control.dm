@@ -671,8 +671,11 @@
 	vis_target = null
 
 /obj/machinery/advanced_airlock_controller/ui_act(action, params)
-	if(..() || buildstage != 2)
+	. = ..()
+	if(.)
 		return
+	if(buildstage != 2)
+		return TGUI_ACT_REJECT
 	// these actions can be done by anyone
 	switch(action)
 		if("cycle")

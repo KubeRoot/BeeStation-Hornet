@@ -127,11 +127,11 @@ GLOBAL_LIST_EMPTY(announcement_systems)
 	if(.)
 		return
 	if(!usr.canUseTopic(src, !issilicon(usr)))
-		return
+		return TGUI_ACT_REJECT
 	if(stat & BROKEN)
 		visible_message("<span class='warning'>[src] buzzes.</span>", "<span class='hear'>You hear a faint buzz.</span>")
 		playsound(src.loc, 'sound/machines/buzz-two.ogg', 50, TRUE)
-		return
+		return TGUI_ACT_REJECT
 	switch(action)
 		if("ArrivalText")
 			var/NewMessage = trim(html_encode(param["newText"]), MAX_MESSAGE_LEN)

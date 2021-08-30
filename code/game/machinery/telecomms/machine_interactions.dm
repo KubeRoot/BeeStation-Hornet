@@ -83,7 +83,7 @@
 		return
 
 	if(!issilicon(operator) && !istype(operator.get_active_held_item(), /obj/item/multitool))
-		return
+		return TGUI_ACT_REJECT
 
 	var/obj/item/multitool/heldmultitool = get_multitool(operator)
 
