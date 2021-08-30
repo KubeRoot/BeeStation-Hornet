@@ -76,7 +76,8 @@ input. The input's `action` and `params` are passed to the proc.
 
 ```dm
 /obj/machinery/my_machine/ui_act(action, params)
-  if(..())
+  . = ..()
+  if(.)
     return
   if(action == "change_color")
     var/new_color = params["color"]
@@ -95,6 +96,19 @@ is attempting to exploit the game.
 Also note the use of `. = TRUE` (or `FALSE`), which is used to notify the UI
 that this input caused an update. This is especially important for UIs that do
 not auto-update, as otherwise the user will never see their change.
+
+If you perform special checks in ui_act that prevent you from interacting with
+the machine (for example requiring multitool for telecomms), you should return
+`TGUI_ACT_REJECT`. This way the UI won't update but any inheriting interfaces
+will know not to accept user input.
+
+It is a good idea to propagate the parent call's return value. If anything
+inherits your type and overrides ui_act and you don't propagate the return
+value, it will not know if the user is allowed to use the interface.
+
+On the opposite side, if you override ui_act for an existing interface and you
+do not propagate the return value, tgui will not know to update the interface
+when a change occurs on the parent.
 
 ### Frontend
 
@@ -304,7 +318,8 @@ upon code review):
   return data
 
 /obj/copypasta/ui_act(action, params)
-  if(..())
+  . = ..()
+  if(.)
     return
   switch(action)
     if("copypasta")
