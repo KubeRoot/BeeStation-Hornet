@@ -174,6 +174,7 @@
 	if(PH && !QDELETED(PH))
 		PH.remove_ranged_ability()
 		QDEL_NULL(PH)
+	return ..()
 
 /datum/clockcult/scripture/slab/invoke()
 	progress = new(invoker, use_time)
