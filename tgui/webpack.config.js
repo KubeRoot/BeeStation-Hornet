@@ -152,6 +152,7 @@ module.exports = (env = {}, argv) => {
         },
       }),
     ];
+    config.devtool = 'source-map';
   }
 
   // Development build specific options
