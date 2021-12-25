@@ -127,11 +127,86 @@
 		return
 	T.break_tile()
 
+GLOBAL_VAR_INIT(floor_corner_mask, icon('icons/turf/floors.dmi', icon_state="corner_mask"))
+
+/turf/open/floor/proc/generate_broken_quarter(xoff, yoff)
+	var/mutable_appearance/corner = new(src)
+	corner.appearance_flags |= KEEP_TOGETHER | PIXEL_SCALE
+	corner.filters += filter(type="alpha", icon=GLOB.floor_corner_mask, x=xoff, y=yoff)
+	var/matrix/M = corner.transform
+	M.Translate(8-xoff, 8-yoff)
+	M.Turn(rand()*30-15)
+	M.Translate(xoff-9+rand()*2, yoff-9+rand()*2)
+	corner.transform = M
+	var/brightness = rand()*30+200
+	corner.color = rgb(brightness+rand()*3, brightness+rand()*3, brightness+rand()*3)
+	return corner
+
+/turf/open/floor/proc/make_broken_overlay()
+	/*
+	var/mutable_appearance/current = new(src)
+
+	var/mask = GLOB.floor_corner_mask
+
+	var/mutable_appearance/corner1 = new(current)
+	corner1.filters = filter(type="alpha", icon=mask, x=0, y=0)
+	corner1.transform.Translate(8, 8).Turn(rand()*30-15).Translate(-8+rand()*4-2, -8+rand()*4-2)
+	corner1.color = rgb(255, 10, 10)
+	var/mutable_appearance/corner2 = new(current)
+	corner2.filters = filter(type="alpha", icon=mask, x=15, y=0)
+	corner2.transform.Translate(-8, 8).Turn(rand()*30-15).Translate(8+rand()*4-2, -8+rand()*4-2)
+	var/mutable_appearance/corner3 = new(current)
+	corner3.filters = filter(type="alpha", icon=mask, x=0, y=15)
+	corner3.transform.Translate(8, -8).Turn(rand()*30-15).Translate(-8+rand()*4-2, 8+rand()*4-2)
+	var/mutable_appearance/corner4 = new(current)
+	corner4.filters = filter(type="alpha", icon=mask, x=15, y=15)
+	corner4.transform.Translate(-8, -8).Turn(rand()*30-15).Translate(8+rand()*4-2, 8+rand()*4-2)
+
+	//var/mutable_appearance/result = new()
+	//result.overlays += list(corner1)
+
+	return list(corner1, corner2, corner3, corner4)
+	*/
+	return list(
+		generate_broken_quarter(0, 0),
+		generate_broken_quarter(16, 0),
+		generate_broken_quarter(0, -16),
+		generate_broken_quarter(16, -16),
+	)
+
+	//var/mutable_appearance/orig_rendertarget = new(src)
+
+/turf/open/floor/var/broken_overlay
+
 /turf/open/floor/proc/break_tile()
 	if(broken)
 		return
-	icon_state = pick(broken_states)
+	//icon_state = pick(broken_states)
+	var/turf/base_turf
+	if(length(baseturfs))
+		var/index = baseturfs.len
+		base_turf = baseturfs[index]
+		while(ispath(base_turf, /turf/baseturf_skipover))
+			index--
+			if(index < 1)
+				CRASH("The bottommost baseturf of a turf is a skipover [src]([type])")
+			base_turf = baseturfs[index]
+	else
+		base_turf = baseturfs
+
+	broken_overlay = make_broken_overlay()
+
+	icon = initial(base_turf.icon)
+	icon_state = initial(base_turf.icon_state)
+
 	broken = 1
+
+	update_icon()
+
+/turf/open/floor/update_overlays()
+	. = ..()
+	if(broken_overlay)
+		. += broken_overlay
 
 /turf/open/floor/burn_tile()
 	if(broken || burnt)
