@@ -131,50 +131,37 @@ GLOBAL_VAR_INIT(floor_corner_mask, icon('icons/turf/floors.dmi', icon_state="cor
 
 /turf/open/floor/proc/generate_broken_quarter(xoff, yoff)
 	var/mutable_appearance/corner = new(src)
+	//corner.render_source = "*brokentile_\ref[src]"
 	corner.appearance_flags |= KEEP_TOGETHER | PIXEL_SCALE
 	corner.filters += filter(type="alpha", icon=GLOB.floor_corner_mask, x=xoff, y=yoff)
+	//corner.filters += filter(type="drop_shadow")
+	//corner.filters += filter(type="outline", color=rgb(0, 0, 0, 20))
 	var/matrix/M = corner.transform
 	M.Translate(8-xoff, 8-yoff)
-	M.Turn(rand()*30-15)
+	M.Turn(rand()*40-20)
 	M.Translate(xoff-9+rand()*2, yoff-9+rand()*2)
 	corner.transform = M
-	var/brightness = rand()*30+200
+	var/brightness = rand()*40+212
 	corner.color = rgb(brightness+rand()*3, brightness+rand()*3, brightness+rand()*3)
 	return corner
 
 /turf/open/floor/proc/make_broken_overlay()
-	/*
-	var/mutable_appearance/current = new(src)
 
-	var/mask = GLOB.floor_corner_mask
+	var/mutable_appearance/orig_rendertarget = new(src)
+	orig_rendertarget.appearance_flags |= KEEP_TOGETHER
+	orig_rendertarget.render_target = "*brokentile_\ref[src]"
 
-	var/mutable_appearance/corner1 = new(current)
-	corner1.filters = filter(type="alpha", icon=mask, x=0, y=0)
-	corner1.transform.Translate(8, 8).Turn(rand()*30-15).Translate(-8+rand()*4-2, -8+rand()*4-2)
-	corner1.color = rgb(255, 10, 10)
-	var/mutable_appearance/corner2 = new(current)
-	corner2.filters = filter(type="alpha", icon=mask, x=15, y=0)
-	corner2.transform.Translate(-8, 8).Turn(rand()*30-15).Translate(8+rand()*4-2, -8+rand()*4-2)
-	var/mutable_appearance/corner3 = new(current)
-	corner3.filters = filter(type="alpha", icon=mask, x=0, y=15)
-	corner3.transform.Translate(8, -8).Turn(rand()*30-15).Translate(-8+rand()*4-2, 8+rand()*4-2)
-	var/mutable_appearance/corner4 = new(current)
-	corner4.filters = filter(type="alpha", icon=mask, x=15, y=15)
-	corner4.transform.Translate(-8, -8).Turn(rand()*30-15).Translate(8+rand()*4-2, 8+rand()*4-2)
-
-	//var/mutable_appearance/result = new()
-	//result.overlays += list(corner1)
-
-	return list(corner1, corner2, corner3, corner4)
-	*/
-	return list(
+	var/mutable_appearance/result = new()
+	result.overlays += list(
+		//orig_rendertarget,
 		generate_broken_quarter(0, 0),
 		generate_broken_quarter(16, 0),
 		generate_broken_quarter(0, -16),
 		generate_broken_quarter(16, -16),
 	)
+	result.plane++
 
-	//var/mutable_appearance/orig_rendertarget = new(src)
+	return result
 
 /turf/open/floor/var/broken_overlay
 
@@ -182,6 +169,11 @@ GLOBAL_VAR_INIT(floor_corner_mask, icon('icons/turf/floors.dmi', icon_state="cor
 	if(broken)
 		return
 	//icon_state = pick(broken_states)
+
+	//# Generate the four broken corners overlay
+	broken_overlay = make_broken_overlay()
+
+	//# Find the underlying floor sprite
 	var/turf/base_turf
 	if(length(baseturfs))
 		var/index = baseturfs.len
@@ -194,13 +186,25 @@ GLOBAL_VAR_INIT(floor_corner_mask, icon('icons/turf/floors.dmi', icon_state="cor
 	else
 		base_turf = baseturfs
 
-	broken_overlay = make_broken_overlay()
-
+	//# Replace the sprite with the underlying floor sprite
 	icon = initial(base_turf.icon)
 	icon_state = initial(base_turf.icon_state)
 
+	//# Remove decals from the current floor !!HACKY!!
+	var/targets = comp_lookup && comp_lookup[COMSIG_ATOM_UPDATE_OVERLAYS]
+	if(targets)
+		if(!length(targets))
+			targets = list(targets)
+
+		for(var/target in targets)
+			if(istype(target, /datum/element/decal))
+				var/datum/element/decal/decal = target
+				decal.Detach(src)
+
+	///# Normal code
 	broken = 1
 
+	///# Update icon to apply new overlay
 	update_icon()
 
 /turf/open/floor/update_overlays()
